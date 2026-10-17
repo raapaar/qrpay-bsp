@@ -1,0 +1,12 @@
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins*
+mobile/android/
+mobile/ios/
+mobile/.metadata
+**/__pycache__/
+*.jks
+*.keystore
+key.properties
+.env
+output/

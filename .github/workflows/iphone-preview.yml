@@ -1,0 +1,43 @@
+name: Build iPhone demo
+
+# Explicitly triggered by the project owner. No signing credentials required.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  iphone:
+    runs-on: macos-14
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+          cache: true
+      - name: Generate platform projects
+        run: python scripts/bootstrap.py
+      - name: Check privacy boundaries
+        run: python scripts/check_project.py
+      - name: Analyze Flutter source
+        working-directory: mobile
+        run: flutter analyze
+      - name: Test the demo
+        working-directory: mobile
+        run: flutter test
+      - name: Build ARM64 iPhone app without signing
+        working-directory: mobile
+        run: flutter build ios --release --no-codesign
+      - name: Package unsigned IPA
+        run: python scripts/package_ios.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: QRpay-iPhone-unsigned
+          path: output/QRpay-Demo-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 7
