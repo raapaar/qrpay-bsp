@@ -1,7 +1,20 @@
 # QRpay BSP merchant payment prototype
 
-Version 0.2.0. Flutter GUI with Android native handoff for `*131*6#`.
+Version 0.3.0. Flutter GUI with Android native handoff for `*131*6#`.
 This is an independent development prototype, not an official BSP app.
+
+## GUI milestone (0.3.0)
+
+- Charcoal and yellow theme, QR coin brand asset and rounded controls.
+- Bottom navigation: Home, Scan, Activity, Vendor and Profile.
+- Separate Vendor page opening the existing demo QR generator.
+- Existing scan, review, authorization and lifecycle clearing retained.
+- Activity/Profile explain pending features without simulated balances or rankings.
+- Android assisted handoff is shown only on Android.
+
+Personal transfers, persistent history, QR inventory/export, server accounts,
+consented sync, feedback and spending comparisons are future milestones.
+The coin asset is an in-app brand mark; native launcher icons are unchanged.
 
 ## What is implemented
 
@@ -93,7 +106,7 @@ inside `mobile/`. Real-device release signing and App Store submission are separ
 
 For personal testing on an iPhone from Windows, see `docs/IPHONE_SETUP.md`. The
 new manually triggered **Build iPhone demo** workflow produces an unsigned device
-IPA for subsequent local signing with AltStore Classic. It has not been run yet.
+IPA for subsequent local signing with AltStore Classic. Run this workflow on the GUI branch to validate the updated iPhone build.
 A simulator build cannot be installed on an iPhone. Neither build route performs
 live banking transactions.
 
@@ -119,13 +132,15 @@ Any future update/profile service must remain outside the cellular payment path.
 
 See `docs/VALIDATION.md` for checks actually executed in the authoring environment.
 Run Flutter analysis, unit/widget tests and both platform builds before device
-testing. The GitHub workflow is supplied but has not been run or pushed remotely.
+testing. GitHub Actions validates each branch; inspect the current run before installing.
 
 ## Project map
 
 | Path | Purpose |
 | --- | --- |
-| `mobile/lib/main.dart` | Responsive GUI, scanner, generator and lifecycle clearing |
+| `mobile/lib/main.dart` | App entry point |
+| `mobile/lib/app/` | Theme, bottom navigation and lifecycle clearing |
+| `mobile/lib/features/payment_flow.dart` | Review, scanner and demo QR generator |
 | `mobile/lib/payment.dart` | Protocol validation, exact money, session and providers |
 | `mobile/lib/bsp_channel.dart` | Typed fixed-menu Android bridge |
 | `platform/android/MainActivity.kt` | Native dialler handoff and screenshot protection |

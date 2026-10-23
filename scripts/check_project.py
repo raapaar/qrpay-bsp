@@ -50,7 +50,7 @@ class SourceChecks(unittest.TestCase):
         for dependency in ['http:', 'dio:', 'sqflite:', 'shared_preferences:',
                            'firebase_', 'sentry_', 'flutter_secure_storage:']:
             self.assertNotIn(dependency, pubspec)
-        dart = '\n'.join(p.read_text() for p in (ROOT / 'mobile/lib').glob('*.dart'))
+        dart = '\n'.join(p.read_text() for p in (ROOT / 'mobile/lib').rglob('*.dart'))
         for forbidden in ['dart:io', 'dart:html', 'Clipboard.setData',
                           'debugPrint(', 'print(', 'obscureText:', 'RestorationMixin']:
             self.assertNotIn(forbidden, dart)
