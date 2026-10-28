@@ -6,11 +6,17 @@ Future<void> scrollToText(
   WidgetTester tester,
   Finder finder,
 ) async {
+  final pageScrollable = find.descendant(
+    of: find.byType(ListView),
+    matching: find.byType(Scrollable),
+  ).first;
+
   await tester.scrollUntilVisible(
     finder,
     150,
-    scrollable: find.byType(Scrollable).last,
+    scrollable: pageScrollable,
   );
+
   await tester.pumpAndSettle();
 }
 
