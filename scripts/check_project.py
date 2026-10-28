@@ -45,15 +45,15 @@ class SourceChecks(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'simulator'):
                 package_ios.package(app, Path(tmp) / 'preview.ipa')
 
-    def test_no_network_storage_or_secret_capture_dependencies(self):
-        pubspec = (ROOT / 'mobile/pubspec.yaml').read_text()
-        for dependency in ['http:', 'dio:', 'sqflite:', 'shared_preferences:',
-                           'firebase_', 'sentry_', 'flutter_secure_storage:']:
-            self.assertNotIn(dependency, pubspec)
-        dart = '\n'.join(p.read_text() for p in (ROOT / 'mobile/lib').rglob('*.dart'))
-        for forbidden in ['dart:io', 'dart:html', 'Clipboard.setData',
-                          'debugPrint(', 'print(', 'obscureText:', 'RestorationMixin']:
-            self.assertNotIn(forbidden, dart)
+    def test_banking_protocol_remains_separate_from_optional_backup(self):
+        source = (ROOT / 'mobile/lib/payment.dart').read_text()
+        self.assertIn('Live BSP payment transport is not configured.', source)
+        for dependency in ['http', 'sqflite', 'printing']:
+            self.assertIn(dependency + ':', (ROOT / 'mobile/pubspec.yaml').read_text())
+        cloud = (ROOT / 'mobile/lib/data/cloud_client.dart').read_text()
+        self.assertIn("store.enabled('cloudConsent')", cloud)
+        self.assertNotIn('sendUssdRequest', cloud)
+        self.assertNotIn('SmsManager', cloud)
 
     def test_native_handoff_never_submits_or_accepts_commands(self):
         source = (ROOT / 'platform/android/MainActivity.kt').read_text()
@@ -84,7 +84,7 @@ class SourceChecks(unittest.TestCase):
             self.assertEqual(app.get(bootstrap.ANDROID + 'fullBackupContent'), 'false')
             permissions = [p.get(bootstrap.ANDROID + 'name')
                            for p in root.findall('uses-permission')]
-            self.assertEqual(permissions, ['android.permission.CAMERA'])
+            self.assertEqual(permissions, ['android.permission.CAMERA', 'android.permission.INTERNET'])
             self.assertIn('minSdk = 23', build.read_text())
             self.assertIn('NSCameraUsageDescription', plistlib.loads(plist.read_bytes()))
             native = mobile / 'android/app/src/main/kotlin/pg/qrpay/qrpay_bsp/MainActivity.kt'

@@ -1,59 +1,48 @@
-# QRpay BSP merchant payment prototype
+# QRpay Android MVP — 0.4.0
 
-Version 0.3.0. Flutter GUI with Android native handoff for `*131*6#`.
-This is an independent development prototype, not an official BSP app.
+Independent Flutter prototype for offline QR payments and personal transfers.
+All transaction outcomes are simulated. No money moves and this is not an official
+bank app. Existing BSP menu handoff remains manual, Android-only and unverified.
 
-## GUI milestone (0.3.0)
+## What's new
 
-- Charcoal and yellow theme, QR coin brand asset and rounded controls.
-- Bottom navigation: Home, Scan, Activity, Vendor and Profile.
-- Separate Vendor page opening the existing demo QR generator.
-- Existing scan, review, authorization and lifecycle clearing retained.
-- Activity/Profile explain pending features without simulated balances or rankings.
-- Android assisted handoff is shown only on Android.
+- Navy/teal banking theme, bundled DM Sans and consistent Material icons.
+- Centered simplified logo and app name; new Android launcher icon.
+- Larger scan icon in the exact center of the five-item bottom dock.
+- Bottom navigation and pinned actions on every page, including scanner controls.
+- Gentle content fade above the dock, respecting reduced motion.
+- Personal receiving QR and peer transfer simulation.
+- Saved receiving QR inventory with fixed or sender-entered amounts and expiry.
+- PNG sharing with a quiet zone, and printable PDF export.
+- SQLite records that survive restart; optional demo history, categories and filters.
+- Monthly demo purchase totals, an optional budget and self-recorded savings goals.
+- Profile preferences, feedback drafts, data export and local deletion.
+- Optional HTTPS Django accounts/backup/restore/deletion and update notices.
 
-Personal transfers, persistent history, QR inventory/export, server accounts,
-consented sync, feedback and spending comparisons are future milestones.
-The coin asset is an in-app brand mark; native launcher icons are unchanged.
+Only TEST receiving identifiers are accepted. Named banks are demo labels. SIM
+preferences do not select a SIM or prove bank registration. Real SMS/USSD banking,
+settlement verification and real peer rankings require further supported integration.
+See [feature scope](docs/V04_FEATURES.md) for precise capabilities and limitations.
 
-## What is implemented
+## Android build — no Flutter installation needed on your PC
 
-- Camera scanning of the prototype's own JSON demo QR format.
-- Merchant QR generation with PGK amount, test identifier, reference and expiry.
-- Recipient and amount review, then explicit simulated authorization.
-- Deterministic success, decline and uncertain-result scenarios.
-- Exact integer minor units, strict QR input limits and expiry validation.
-- Duplicate-submit guard within a session; late-callback protection after clearing.
-- No PIN entry, account credentials, databases, history, analytics or API calls.
-- Session clearing on completion, backgrounding and two minutes of inactivity.
-- Android screen-capture protection and app backup disabled.
-- Optional Android ACTION_DIAL handoff with fixed `*131*6#`, after user confirmation.
-- Dart unit/widget tests and GitHub Actions Android/iOS build jobs.
+Pushing the update automatically starts **Build Android MVP** in the existing
+checks.yml workflow. Open the newest run on the update branch at:
+https://github.com/raapaar/qrpay-bsp/actions/workflows/checks.yml
 
-## Integration status
+On success download **QRpay-Android-MVP-v0.4**. Extract the ZIP, transfer
+app-debug.apk to the phone, and install. Android's installation-source permission
+may need enabling. Never disable Play Protect. This workflow builds Android only;
+the separate Build iPhone demo workflow is unchanged.
 
-**Background BSP payment automation is NOT implemented.** The live provider
-explicitly fails as unsupported. The optional dialler handoff opens a public menu;
-it does not fill merchant details, dial automatically, enter a PIN, read messages,
-or report payment success. Users must continue in the bank-controlled interface.
-This assisted path does not yet satisfy the requested all-GUI live experience.
+This is a development APK. Preserve exports before any reinstall. Cached debug
+signing keys are not a substitute for a stable private release-signing setup.
 
-The bank's interactive USSD service is not an SMS command API. No undocumented
-concatenated command, prompt-control mechanism or SMS format has been invented.
-An approved transport and response contract is required before implementing live
-GUI authorization. The iOS demo shares Flutter code; iOS live USSD is unsupported.
+## Local development
 
-## Start on Windows
-
-Install Flutter 3.35.7 (pinned baseline), Android Studio with its Android SDK,
-and Python 3.10 or newer. Put Flutter's bin directory on PATH. Use a JDK compatible
-with Flutter's generated Android toolchain; CI uses JDK 17. Do not reuse the old
-AGP 8.2 project configuration from the earlier Kotlin project.
-
-Extract the ZIP, open PowerShell in the `qrpay-bsp` folder, then run:
+Use Flutter 3.35.7, Python 3.10+, Android SDK and Java 17. Start from the repository root:
 
 ```powershell
-flutter doctor
 python scripts/bootstrap.py
 cd mobile
 flutter analyze
@@ -62,90 +51,30 @@ flutter devices
 flutter run
 ```
 
-Connect an Android phone with USB debugging enabled, or start an emulator.
-The demo works on an emulator; real camera and dialler behavior need a physical
-device. Camera scanning uses bundled ML Kit so it does not need a first-use model
-download. Initial SDK/dependency installation DOES require internet.
+Bootstrap regenerates platform projects, preserves Dart sources, installs reviewed
+Android overlays and applies the launcher icon. pubspec.lock is committed to pin
+transitive dependencies. Android minSdk is 23. The prototype was targeted for the
+itel A100C (A6611L), Android 15, 720 × 1612; device-level acceptance is still required.
 
-Platform scaffolding is generated by Flutter rather than hand-assembled. The
-bootstrap preserves supplied Dart source, applies native overlays and obtains
-dependencies. Android/iOS generated folders are ignored because the bootstrap
-recreates them. Keep `pubspec.lock` after initial dependency resolution and commit
-it in the eventual app repository. CI pins Flutter and direct package versions;
-transitive versions are not locked in this source-only package.
+## Offline data and privacy
 
-## Try the GUI
+Local history is off until enabled in Profile. Saving a QR or feedback explicitly
+retains that item. SQLite is sandboxed by Android but not separately encrypted.
+App account tokens use secure storage; bank PINs and OTPs are never requested.
+Export records before deleting app data or reinstalling with a different key.
+Backgrounding still clears an active payment session; consented retained records
+remain. Deleting a local copy does not delete a cloud copy or printed QR.
 
-1. Tap **Try a K25 demo payment**.
-2. Check Sample Madang Store, `TEST-56997`, K25.00 and the demo warning.
-3. Choose a simulated success, decline or uncertain outcome.
-4. Tap **Authorize demo payment**. No PIN is requested.
-5. Tap **Finish and clear session**. No history is retained.
-6. Repeat, then switch apps: returning should show the home screen.
-7. On a second phone, create a demo merchant QR. Scan it on the first phone.
-8. Android only: explicitly choose the assisted BSP menu handoff. This is separate
-   from simulation, and you must not interpret opening the dialler as a transfer.
+## Optional backend
 
-Only `TEST-` merchant identifiers are accepted by the demo. Codes are unsigned and
-cannot prove merchant identity. Never use this schema for real payment acceptance.
+No server is deployed or preconfigured. [backend/README.md](backend/README.md)
+contains Django/PostgreSQL configuration. App account credentials are separate
+from banking authorization. Enable backup only after reviewing the server address
+and records being shared. Sync never initiates, repeats or verifies a payment.
 
-## Build a test APK
+## References and assets
 
-After setup and tests:
-
-```powershell
-flutter build apk --debug
-```
-
-Output: `mobile/build/app/outputs/flutter-apk/app-debug.apk` (relative to repo root).
-This is a development build, not a Play Store release. No release signing material
-is included. The source package does not contain a prebuilt APK.
-
-For iOS, use a Mac with Xcode and run `flutter build ios --simulator --debug`
-inside `mobile/`. Real-device release signing and App Store submission are separate.
-
-For personal testing on an iPhone from Windows, see `docs/IPHONE_SETUP.md`. The
-new manually triggered **Build iPhone demo** workflow produces an unsigned device
-IPA for subsequent local signing with AltStore Classic. Run this workflow on the GUI branch to validate the updated iPhone build.
-A simulator build cannot be installed on an iPhone. Neither build route performs
-live banking transactions.
-
-## Privacy and unresolved payment recovery
-
-Session data lives only in process memory. Clearing drops references; it is not a
-guarantee that every runtime/OS memory copy is securely erased. Camera permissions
-and OS settings may persist. Android FLAG_SECURE is a mitigation, not a guarantee
-against all capture. iOS capture protection has not been implemented beyond the
-Flutter lifecycle privacy cover. Keyboard and OS behavior require device testing.
-No production claim of secure deletion is made.
-
-The strict no-retention requirement creates a live-payment recovery problem:
-after process death there is no saved attempt reference to reconcile. Before live
-transfers, BSP must provide recovery independent of local persistence, or the
-product owner must approve a minimal non-secret recovery record. Never resolve
-this by automatically resending a payment. The simulator has no real money risk.
-
-No Railway service is necessary for this phase. Banking data is not synchronized.
-Any future update/profile service must remain outside the cellular payment path.
-
-## Verification
-
-See `docs/VALIDATION.md` for checks actually executed in the authoring environment.
-Run Flutter analysis, unit/widget tests and both platform builds before device
-testing. GitHub Actions validates each branch; inspect the current run before installing.
-
-## Project map
-
-| Path | Purpose |
-| --- | --- |
-| `mobile/lib/main.dart` | App entry point |
-| `mobile/lib/app/` | Theme, bottom navigation and lifecycle clearing |
-| `mobile/lib/features/payment_flow.dart` | Review, scanner and demo QR generator |
-| `mobile/lib/payment.dart` | Protocol validation, exact money, session and providers |
-| `mobile/lib/bsp_channel.dart` | Typed fixed-menu Android bridge |
-| `platform/android/MainActivity.kt` | Native dialler handoff and screenshot protection |
-| `scripts/bootstrap.py` | Flutter platform setup and privacy overlay |
-| `scripts/check_project.py` | Source privacy gates and overlay regression checks |
-| `mobile/test/` | Dart domain and Flutter widget tests |
-| `docs/BSP_INTEGRATION.md` | Bank transport requirements and next milestone |
-
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The banking repository supplied
+the visual direction. The scroll reference informed the fading behavior. Hotpot's
+repository lists icon libraries, including Material Icons; it is not a font pack.
+The QR ring asset is decorative branding, not a payment QR code.

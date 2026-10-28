@@ -2,20 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qrpay_bsp/main.dart';
 
-Future<void> scrollToText(
-  WidgetTester tester,
-  Finder finder,
-) async {
-  final pageScrollable = find.descendant(
-    of: find.byType(ListView),
-    matching: find.byType(Scrollable),
-  ).first;
+Future<void> scrollToText(WidgetTester tester, Finder finder) async {
+  final pageScrollable =
+      find
+          .descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          )
+          .first;
 
-  await tester.scrollUntilVisible(
-    finder,
-    150,
-    scrollable: pageScrollable,
-  );
+  await tester.scrollUntilVisible(finder, 150, scrollable: pageScrollable);
 
   await tester.pumpAndSettle();
 }
@@ -50,10 +46,8 @@ void main() {
       await tester.tap(authorize);
       await tester.pumpAndSettle();
 
-      expect(
-        find.text('Demo completed — no money moved'),
-        findsOneWidget,
-      );
+      await scrollToText(tester, find.text('Demo completed — no money moved'));
+      expect(find.text('Demo completed — no money moved'), findsOneWidget);
 
       final finish = find.text('Finish and clear session');
       await scrollToText(tester, finish);
@@ -62,111 +56,85 @@ void main() {
       await tester.tap(finish);
       await tester.pumpAndSettle();
 
-      await scrollToText(
-        tester,
-        find.text('Try a K25 demo payment'),
-      );
+      await scrollToText(tester, find.text('Try a K25 demo payment'));
 
-      expect(
-        find.text('Try a K25 demo payment').hitTestable(),
-        findsOneWidget,
-      );
+      expect(find.text('Try a K25 demo payment').hitTestable(), findsOneWidget);
       expect(find.text('K25.00'), findsNothing);
 
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );
 
-  testWidgets(
-    'backgrounding clears payment session',
-    (tester) async {
-      await tester.pumpWidget(const QrPayApp());
-      await tester.pumpAndSettle();
+  testWidgets('backgrounding clears payment session', (tester) async {
+    await tester.pumpWidget(const QrPayApp());
+    await tester.pumpAndSettle();
 
-      await openDemoPayment(tester);
+    await openDemoPayment(tester);
 
-      // Confirm a payment exists before testing session clearing.
-      expect(find.text('K25.00'), findsOneWidget);
+    // Confirm a payment exists before testing session clearing.
+    expect(find.text('K25.00'), findsOneWidget);
 
-      tester.binding.handleAppLifecycleStateChanged(
-        AppLifecycleState.paused,
-      );
-      await tester.pumpAndSettle();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pumpAndSettle();
 
-      tester.binding.handleAppLifecycleStateChanged(
-        AppLifecycleState.resumed,
-      );
-      await tester.pumpAndSettle();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
 
-      expect(find.text('K25.00'), findsNothing);
+    expect(find.text('K25.00'), findsNothing);
 
-      await scrollToText(
-        tester,
-        find.text('Try a K25 demo payment'),
-      );
+    await scrollToText(tester, find.text('Try a K25 demo payment'));
 
-      expect(
-        find.text('Try a K25 demo payment').hitTestable(),
-        findsOneWidget,
-      );
+    expect(find.text('Try a K25 demo payment').hitTestable(), findsOneWidget);
 
-      await tester.pumpWidget(const SizedBox.shrink());
-    },
-  );
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 
-  testWidgets(
-    'bottom tabs and vendor generator work on a small phone',
-    (tester) async {
-      tester.view.physicalSize = const Size(320, 640);
-      tester.view.devicePixelRatio = 1;
+  testWidgets('bottom tabs and vendor generator work on a small phone', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
 
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(const QrPayApp());
+    await tester.pumpWidget(const QrPayApp());
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+
+    for (final tab in ['Scan', 'Activity', 'Vendor', 'Profile', 'Home']) {
+      await tester.tap(find.text(tab));
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+    }
 
-      for (final tab in [
-        'Scan',
-        'Activity',
-        'Vendor',
-        'Profile',
-        'Home',
-      ]) {
-        await tester.tap(find.text(tab));
-        await tester.pumpAndSettle();
+    await tester.tap(find.text('Vendor'));
+    await tester.pumpAndSettle();
 
-        expect(tester.takeException(), isNull);
-      }
+    final create = find.text('Create a demo merchant QR');
+    await scrollToText(tester, create);
 
-      await tester.tap(find.text('Vendor'));
-      await tester.pumpAndSettle();
+    expect(create.hitTestable(), findsOneWidget);
+    await tester.tap(create);
+    await tester.pumpAndSettle();
 
-      final create = find.text('Create a demo merchant QR');
-      await scrollToText(tester, create);
+    expect(tester.takeException(), isNull);
 
-      expect(create.hitTestable(), findsOneWidget);
-      await tester.tap(create);
-      await tester.pumpAndSettle();
+    final generate = find.text('Generate demo QR');
+    await scrollToText(tester, generate);
 
-      expect(tester.takeException(), isNull);
+    expect(generate.hitTestable(), findsOneWidget);
+    await tester.tap(generate);
+    await tester.pumpAndSettle();
 
-      final generate = find.text('Generate demo QR');
-      await scrollToText(tester, generate);
+    final expiry = find.textContaining('not BSP verified');
+    await scrollToText(tester, expiry);
 
-      expect(generate.hitTestable(), findsOneWidget);
-      await tester.tap(generate);
-      await tester.pumpAndSettle();
+    expect(expiry, findsOneWidget);
+    expect(tester.takeException(), isNull);
 
-      final expiry = find.textContaining('expires in 10 minutes');
-      await scrollToText(tester, expiry);
-
-      expect(expiry, findsOneWidget);
-      expect(tester.takeException(), isNull);
-
-      await tester.pumpWidget(const SizedBox.shrink());
-    },
-  );
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 }

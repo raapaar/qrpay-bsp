@@ -23,7 +23,7 @@ def apply_platform(mobile: Path):
     application = root.find('application')
     if application is None:
         raise RuntimeError('Flutter Android manifest has no application')
-    application.set(ANDROID + 'label', 'QRpay Demo')
+    application.set(ANDROID + 'label', 'QRpay')
     application.set(ANDROID + 'allowBackup', 'false')
     application.set(ANDROID + 'fullBackupContent', 'false')
     application.set(ANDROID + 'usesCleartextTraffic', 'false')
@@ -35,6 +35,10 @@ def apply_platform(mobile: Path):
         ET.SubElement(root, 'uses-feature', {
             ANDROID + 'name': 'android.hardware.camera', ANDROID + 'required': 'false'})
     tree.write(manifest, encoding='utf-8', xml_declaration=True)
+    if not any(p.get(ANDROID + 'name') == 'android.permission.INTERNET'
+               for p in root.findall('uses-permission')):
+        ET.SubElement(root, 'uses-permission', {ANDROID + 'name': 'android.permission.INTERNET'})
+        tree.write(manifest, encoding='utf-8', xml_declaration=True)
     kotlin = mobile / 'android/app/src/main/kotlin/pg/qrpay/qrpay_bsp/MainActivity.kt'
     kotlin.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(ROOT / 'platform/android/MainActivity.kt', kotlin)
@@ -45,6 +49,9 @@ def apply_platform(mobile: Path):
     elif not re.search(r'minSdk\s*=\s*23', text):
         raise RuntimeError('Review generated Gradle minSdk configuration')
     build.write_text(text)
+    overlay = ROOT / 'platform/android/res'
+    if overlay.exists():
+        shutil.copytree(overlay, mobile / 'android/app/src/main/res', dirs_exist_ok=True)
     plist = mobile / 'ios/Runner/Info.plist'
     with plist.open('rb') as f:
         info = plistlib.load(f)
